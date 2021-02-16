@@ -1,0 +1,51 @@
+PROMPT
+
+[CoreDev Candidate Programming Project]
+
+In broad terms, algorithmic trading strategies observe and react to three types of external input, specifically: (1) Market data events, (2) Order execution events, and (3) Changes to the value of the system clock. Focusing on the last category, the ability to track and appropriately react to the passage of time is crucial for many strategies. As an example, if a strategy decides to act on a predictive signal and enter into a position, it may choose to set up a timer allowing it to exit the position if the prediction does not realize within some predetermined time interval.
+
+
+
+In this assignment, your goal is to implement a high-performance TimerService module that accepts timer registration requests from a hypothetical single-threaded HFT strategy and manages the dispatch of timer event callbacks.
+Attached, please find a copy of the header file (TimerService.h) containing the declaration of the TimerService class and the specification of its public interface. DemoTimerServiceClient.cpp contains a minimal client application that illustrates the usage of the TimerService interface.
+
+
+
+Since TimerService will be used in latency-sensitive strategies, runtime efficiency is a top-level concern and we challenge you to come up with the most efficient implementation under the following assumptions:
+
+  1. TimerService::advanceClock() will be called from the strategy's main event dispatch loop quite frequently (at least once per millisecond).
+
+  2. Calls to TimerService::setTimer() and setRepeatingTimer() will be much less frequent and most of them will happen at startup time.
+
+  3. The total number of simultaneously-active timers managed by a single TimerService instance will not exceed 1024.
+
+  4. The vast majority of the repeating timers will have periodicity ranging from 10ms to 10sec.
+
+
+
+The primary target for performance optimization is the execution time of TimerService::advanceClock(). A call to this method that does not result in dispatching of any timer callbacks should incur as little latency as possible.
+
+
+####
+
+built using gcc 9.3.1 on fedora 31
+
+to run tests, in this directory execute:
+
+   make; ./build/apps/timer_service_tests
+   
+to clean:
+   make clean;
+   
+####
+
+Assumptions:
+
+
+####
+
+Design decisions: 
+
+####
+
+Other notes:
