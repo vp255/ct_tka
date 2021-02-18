@@ -19,11 +19,19 @@ public:
   void insert(T, F);
 private:
   T& operator[](unsigned);
+  void increment_index(unsigned&);
   std::vector<T> data;
   unsigned head_;
   unsigned tail_;
   unsigned size_;
 };
+
+template <class T, int N>
+void
+CircularQueue<T, N>::increment_index(unsigned& i) {
+  if (++i == N)
+    i == 0;
+}
 
 template <class T, int N>
 T&
@@ -64,18 +72,15 @@ CircularQueue<T, N>::empty() const {
 template <class T, int N>
 void
 CircularQueue<T, N>::pop() {
-  if (empty())
-    assert(false);
-  if (++head_ == N)
-    head = 0;
-  size--;
+  assert(!empty());
+  increment_index(head_);
+  assert(size-- >= 0);
 }
 
 template <class T, int N>
 void
 CircularQueue<T, N>::push(T val) {
-  if (++tail_ == N)
-    tail_ = 0;
+  increment_index(tail_);
   data[tail_] = val;
   assert(++size_ != N);
 }
@@ -84,13 +89,12 @@ template <class T, int N>
 template <class F>
 void
 CircularQueue<T, N>::insert(T val, F op) {
-  unsigned i = 0;
-  for (; i < size_; i++) {
+  assert(size != N);
+  for (unsigned i = 0; i < size_; i++) {
     if (auto& val = operator[](i); op(val)) {
       std::swap(operator[](i), val);
     }
   }
-  if (++tail_ == N)
-    tail_ = 0;
+  increment_index(tail_);
   data[tail_] = val;
 }

@@ -1,7 +1,12 @@
 #pragma once
 
 #include <stdint.h>
-#include "timer_service/TimerQueue.h"
+#include <functional>
+#include <queue>
+#include <unordered_set>
+#include <vector>
+//#include "timer_service/TimerQueue.h"
+#include "timer_service/TimerServiceElement.h"
 
 // ----------------------------------- Global type definitions -------------------------------------
 // System clock measurement, expressed as the number of nanoseconds elapsed since the UNIX Epoch.
@@ -74,7 +79,9 @@ public:
   TimerService(const TimerService&)            = delete; // Copy construction intentionally disabled
   TimerService& operator=(const TimerService&) = delete; // Assignment operator intentionally disabled
 private:
-  TimerQueue<IListener> timer_queue;
+  //TimerQueue<IListener> timer_queue;
   int counter = 0;
   epoch_ns_t current_time;
+  std::unordered_set<int> canceled_timers;
+  std::priority_queue<TimerServiceElement<IListener>, std::vector<TimerServiceElement<IListener>>, std::greater<TimerServiceElement<IListener>>> queue;
 };

@@ -38,7 +38,7 @@ public:
   uint16_t size() const;
 
   value_type& head();
-  value_type&  back();
+  value_type& back();
   TimerQueue();
 
 private:

@@ -1,4 +1,8 @@
+#pragma once
+
 #include "timer_service/TimerService.h"
+#include "timer_service_tests/GetSystemClockTime.h"
+#include "timer_service_tests/CorrectnessTests.h"
 
 #include <iostream>
 #include <cassert>
@@ -57,33 +61,18 @@ struct DemoListener : public TimerService::IListener {
   }
 };
 
-
-static epoch_ns_t getSystemClockTime() {
-  struct timespec ts;
-  if (clock_gettime(CLOCK_REALTIME, &ts) != 0) {
-    std::cerr << "clock_gettime() failed\n";
-    abort();
-  }
-
-  return ts.tv_sec * 1000000000L + ts.tv_nsec;
-}
-
-
-int main(int argc, char* argv[]) {
-  std::cout << argc << argv[0] << std::endl;
-  TimerService timer_svc(getSystemClockTime());
+void RunDemoListenerTests() {
+  TimerService timer_svc(GetSystemClockTime());
 
   DemoListener listener(&timer_svc);
 
   listener.timer_id_a_ = timer_svc.setTimer(3 * 1000000000L, &listener, nullptr);
 
   while (!listener.done_) {
-    timer_svc.advanceClock(getSystemClockTime());
+    timer_svc.advanceClock(GetSystemClockTime());
   }
 
   assert(listener.a_trigger_count_ == 1);
   assert(listener.b_trigger_count_ == 10);
   assert(listener.c_trigger_count_ == 10);
-
-  return 0;
 }
