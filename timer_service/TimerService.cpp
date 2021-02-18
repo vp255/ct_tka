@@ -18,7 +18,9 @@ int TimerService::setRepeatingTimer(int64_t interval, IListener* listener, void*
 }
 
 void TimerService::cancelTimer(int timer_id) {
-  canceled_timers.insert(timer_id);
+  if (timer_id < counter) {
+    canceled_timers.insert(timer_id);
+  }
 }
 
 void TimerService::advanceClock(epoch_ns_t current_time_ns) {
@@ -38,5 +40,8 @@ void TimerService::advanceClock(epoch_ns_t current_time_ns) {
                                                   element.id});
       }
     }
+  }
+  if (queue.empty()) {
+    canceled_timers.clear();
   }
 }
