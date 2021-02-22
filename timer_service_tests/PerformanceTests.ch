@@ -8,18 +8,6 @@
 
 namespace {
 
-//void InitializeStartup(TimerService& timer_service, timer_service_tests::TestingListener& listener, int64_t runtime_ns) {
-//
-//  int64_t second = 1000000000L;
-//  
-//  listener.setDoneTimeInFromNow(runtime_ns);
-//  listener.setRepeatingTimer(second / 100);
-//  listener.setRepeatingTimer(second / 10);
-//  listener.setRepeatingTimer(second);
-//  listener.setRepeatingTimer(10 * second);
-//}
-
-
 template<class D>
 auto MeasureFunction(std::function<void()> f) {
   auto t1 = std::chrono::high_resolution_clock::now();
@@ -54,42 +42,74 @@ auto setNRandomTimerWithTDelay(timer_service_tests::TestingListener<TimerService
 namespace timer_service_tests {
 
   template <class TimerService>
-  void AdvanceClockTest(const std::vector<int64_t>& repeating_timer_delays, int16_t timers, int64_t delay_between_timers) {
+  void AdvanceClockTest(const std::vector<int64_t>& repeating_timer_delays, int16_t timers, int64_t delay_between_timers, bool flush_cache) {
+
+    int64_t second = 1000000000L;
+    int64_t done_time = timers * delay_between_timers;
+    std::cout << "    Executing " << timers << " timers test "
+              << "over " << done_time << " (ns), or " << (done_time/second) << " (s) with 1 second of processing with no timers WITH";
+
+    if (!flush_cache) {
+      std::cout << "OUT";
+    }
+    std::cout << " cache flushes: " << '\n';
+    done_time += second;
+
     TimerService timer_svc(GetSystemClockTime());
     TestingListener<TimerService> listener(&timer_svc);
 
-    int64_t second = 1000000000L;
-    
-    int64_t done_time = timers * delay_between_timers;
     listener.setDoneTimeInFromNow(done_time);
 
+    std::cout << "           "
+              << "setting up " << repeating_timer_delays.size() << " repeating_timers of sizes: ";
     for (const auto& delay : repeating_timer_delays) {
-      listener.setRepeatingTimer(delay);
+      std::cout << delay << " (ns), ";
     }
 
-    std::cout << "setting up " << timers << " timers "
+
+    std::cout << " which takes " << MeasureFunction<std::chrono::nanoseconds>([&]() {
+                                                                                for (const auto& delay : repeating_timer_delays) {
+                                                                                  listener.setRepeatingTimer(delay);
+                                                                                }
+                                                                             })
+              << " nanoseconds "
+              << '\n';
+
+
+    std::cout << "           "
+              << "setting up " << timers << " timers "
               << "over " << done_time << " nanoseconds "
-              << "takes " << MeasureFunction<std::chrono::nanoseconds>(setNRandomTimerWithTDelay(listener, 10000, 100 * second))
+              << "takes " << MeasureFunction<std::chrono::nanoseconds>(setNRandomTimerWithTDelay(listener, 1000, timers * delay_between_timers))
               << " nanoseconds "
               << '\n';
 
     int64_t times_entered_scope = 0;
 
-    auto l1_cache = std::make_unique<std::vector<int8_t>>(1<<16);
+    std::vector<int8_t> l1_cache(1<<16);
 
     for (auto time = GetSystemClockTime(); time <= listener.doneTime(); time = GetSystemClockTime()) {
-      for (auto& e : *l1_cache) ++e; // flush out l1 cache
+      if (flush_cache) {
+        for (auto& e : l1_cache) ++e; // flush out l1 cache
+      }
       ++times_entered_scope;
       timer_svc.advanceClock(time);
     }
 
-    std::cout << "times_entered_scope: " << times_entered_scope << std::endl;
+    std::cout << "           "
+              << "RESULTS: times_entered_scope: " << times_entered_scope << " over " << done_time << " (ns), or " << (done_time/second) << " (s)\n";
   }
 
   template <class TimerService>
   void RunPerformanceTests() {
     int64_t second = 1000000000L;
-    AdvanceClockTest<TimerService>({second / 100, second / 10}, 1000, second / 100);
+    AdvanceClockTest<TimerService>({second / 100, second / 10, second}, 1000, second / 100, false);
+    AdvanceClockTest<TimerService>({second / 100, second / 10, second}, 1000, second / 100, true);
+    AdvanceClockTest<TimerService>({}, 1000, second / 100, false);
+    AdvanceClockTest<TimerService>({}, 1000, second / 100, true);
+    AdvanceClockTest<TimerService>({second / 100, second / 10, second}, 1000, second / 10, false);
+    AdvanceClockTest<TimerService>({second / 100, second / 10, second}, 1000, second / 10, true);
+    AdvanceClockTest<TimerService>({}, 1000, second / 10, false);
+    AdvanceClockTest<TimerService>({}, 1000, second / 10, true);
   }
 
 } // end of timer_service_tests namespace

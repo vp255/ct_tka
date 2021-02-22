@@ -2,18 +2,20 @@
 
 #include <stdint.h>
 #include <functional>
+#include <queue>
+#include <unordered_set>
+#include <vector>
 #include "timer_service/TimerServiceElement.h"
-#include "timer_service/FiniteRotatingFlatSet.h"
 
 // ----------------------------------- Global type definitions -------------------------------------
 // System clock measurement, expressed as the number of nanoseconds elapsed since the UNIX Epoch.
 typedef int64_t epoch_ns_t;
 
 
-// ----------------------------- TimerService class declaration ----------------------------------
-class TimerService final {
+// ----------------------------- TimerService_priority_queue_impl class declaration ----------------------------------
+class TimerService_priority_queue_impl final {
 public:
-  // TimerService event listener interface.
+  // TimerService_priority_queue_impl event listener interface.
   class IListener {
   public:
     // Arguments:
@@ -26,10 +28,10 @@ public:
   // Constructor
   // Arguments:
   //   current_time_ns:  Current system time.
-  TimerService(epoch_ns_t current_time_ns);
+  TimerService_priority_queue_impl(epoch_ns_t current_time_ns);
 
   // Destructor
-  ~TimerService();
+  ~TimerService_priority_queue_impl();
 
   // Register a one-shot timer that will be removed from the list of pending timers after it
   // triggers once.
@@ -72,11 +74,12 @@ public:
   static constexpr int NO_TIMER_ID = -1;
 
 
-  TimerService()                               = delete; // Default constructor intentionally disabled
-  TimerService(const TimerService&)            = delete; // Copy construction intentionally disabled
-  TimerService& operator=(const TimerService&) = delete; // Assignment operator intentionally disabled
+  TimerService_priority_queue_impl()                               = delete; // Default constructor intentionally disabled
+  TimerService_priority_queue_impl(const TimerService_priority_queue_impl&)            = delete; // Copy construction intentionally disabled
+  TimerService_priority_queue_impl& operator=(const TimerService_priority_queue_impl&) = delete; // Assignment operator intentionally disabled
 private:
   int counter = 0;
   epoch_ns_t current_time;
-  FiniteRotatingFlatSet<TimerServiceElement<IListener>, 2048> flat_set;
+  std::unordered_set<int> canceled_timers;
+  std::priority_queue<TimerServiceElement<IListener>, std::vector<TimerServiceElement<IListener>>, std::greater<TimerServiceElement<IListener>>> queue;
 };

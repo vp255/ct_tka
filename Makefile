@@ -1,5 +1,5 @@
 CXX                     := -g++ -std=c++2a -g
-CXXFLAGS                := -pedantic-errors -Wall -Wextra -Werror -static-libgcc
+CXXFLAGS                := -pedantic-errors -Wall -Wextra -Werror -static-libgcc -O3
 LDFLAGS                 := -L/usr/lib -lstdc++ -lm -pthread
 BUILD                   := ./build
 TEST_OBJ_DIR            := $(BUILD)/timer_service_test_objects

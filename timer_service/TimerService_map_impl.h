@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 #include <functional>
-#include <queue>
-#include <unordered_set>
 #include <vector>
 #include <set>
 #include "timer_service/TimerServiceElement.h"
@@ -75,13 +73,11 @@ public:
   static constexpr int NO_TIMER_ID = -1;
 
 
-  TimerService_map_impl()                               = delete; // Default constructor intentionally disabled
+  TimerService_map_impl()                                        = delete; // Default constructor intentionally disabled
   TimerService_map_impl(const TimerService_map_impl&)            = delete; // Copy construction intentionally disabled
   TimerService_map_impl& operator=(const TimerService_map_impl&) = delete; // Assignment operator intentionally disabled
 private:
-  //TimerQueue<IListener> timer_queue;
   int counter = 0;
   epoch_ns_t current_time;
-  std::unordered_set<int> canceled_timers;
   std::set<TimerServiceElement<IListener>> timers;
 };

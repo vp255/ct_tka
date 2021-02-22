@@ -38,7 +38,6 @@ public:
 
   TestingListener(TimerService *timer_svc) :
       timer_svc_(timer_svc)
-    , cache(1 << 12)
   { }
 
   void onTimerTriggered(int timer_id, void* user_ctx) override {
@@ -121,15 +120,13 @@ public:
       if (executed.id != expected.id) {
         std::cout << "id mismatch, expected: " << expected.id << ", executed: " << executed.id << '\n';
         willreturn = false;
-        //return false;
       }
       if (executed.context != expected.context) {
         std::cout << "context mismatch, expected: " << expected.context << ", executed: " << executed.context << '\n';
         willreturn = false;
-        //return false;
       }
       auto time_diff = abs(executed.time - expected.time);
-      if (time_diff > 1500000) { // adjust at the end
+      if (time_diff > 1000000) { // adjust
         std::cout << "time diff too big: " << time_diff << ", i: " << i << std::endl;
         willreturn = false;
       }
@@ -156,7 +153,6 @@ private:
   std::vector<CallBackInfo> executed_callbacks_{};
   std::set<CallBackInfo> expected_callbacks_{};
   std::vector<std::unique_ptr<RepeatingTimerState>> repeating_timer_states_{};
-  std::vector<int32_t> cache; // l1 cache is 2^16 bytes
 };
 
 } // end of timer_service_tests namespace
