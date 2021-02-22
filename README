@@ -80,8 +80,8 @@ separate std::unordered_map of canceled_timers because this would improve
 locality of reference during lookups.
 
 I chose the size to be 2 * 1024 = 2048 because a lazily deleted timer still
-contributes to capacity until it is processed. So if we have 1 timer, cancel it,
-then insert 1024 we should not have a problem. However it is still possible to
-have overflow problems if we have 1024 canceled but not processed timers, which
+contributes to capacity until the timer is processed and evicted. So if we have 1 timer, cancel it,
+then insert 1024 we should not have a problem with a capacity of 2024. However it is still possible to
+have overflow problems if we have over 1024 canceled but not processed timers, which
 is a rare case.
 
